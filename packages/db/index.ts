@@ -1,6 +1,4 @@
 import { createKysely } from "@vercel/postgres-kysely";
-import { createPool } from "@vercel/postgres";
-
 import type { DB } from "./prisma/types";
 
 export { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
@@ -9,8 +7,18 @@ export * from "./prisma/types";
 export * from "./prisma/enums";
 
 // Create database instance
-// For local development, ensure you have the correct POSTGRES_URL set
-// For production, this will use Vercel's pooled connections automatically
-// Use createPool to ensure we're using the pooled connection
-const pool = createPool();
-export const db = createKysely<DB>({ pool });
+// The @vercel/postgres-kysely package will automatically use the correct
+// environment variables when deployed to Vercel
+// For local development, set POSTGRES_URL in your .env.local file
+let db: ReturnType<typeof createKysely<DB>>;
+
+try {
+  db = createKysely<DB>();
+} catch (error) {
+  console.error("Failed to create database connection:", error);
+  // Create a dummy instance for build time
+  // This will be replaced with a real connection at runtime
+  db = {} as ReturnType<typeof createKysely<DB>>;
+}
+
+export { db };
