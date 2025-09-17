@@ -4,10 +4,11 @@ import GitHubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
 
 import { MagicLinkEmail, resend, siteConfig } from "@saasfly/common";
+import type { User as DBUser } from "@saasfly/db";
 
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 
-import { db } from "./db";
+import { db } from "@saasfly/db";
 import { env } from "./env.mjs";
 
 type UserId = string;
@@ -51,7 +52,7 @@ export const authOptions: NextAuthOptions = {
           .selectFrom("User")
           .select(["name", "emailVerified"])
           .where("email", "=", identifier)
-          .executeTakeFirst();
+          .executeTakeFirst() as DBUser | undefined;
         const userVerified = !!user?.emailVerified;
         const authSubject = userVerified
           ? `Sign-in link for ${(siteConfig as { name: string }).name}`
@@ -99,7 +100,7 @@ export const authOptions: NextAuthOptions = {
         .selectFrom("User")
         .where("email", "=", email)
         .selectAll()
-        .executeTakeFirst();
+        .executeTakeFirst() as DBUser | undefined;
       if (!dbUser) {
         if (user) {
           token.id = user?.id;
