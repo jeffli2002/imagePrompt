@@ -2,6 +2,6 @@
   "github": {
     "silent": true
   },
-  "buildCommand": "turbo run build --filter=@saasfly/web",
+  "buildCommand": "turbo run build --filter=@saasfly/nextjs",
   "outputDirectory": "apps/nextjs/.next"
 }

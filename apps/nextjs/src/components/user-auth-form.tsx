@@ -97,7 +97,7 @@ export function UserAuthForm({
               </p>
             )}
           </div>
-          <button className={cn(buttonVariants())} disabled={isLoading}>
+          <button className={cn(buttonVariants({ className: "bg-purple-600 hover:bg-purple-700" }))} disabled={isLoading}>
             {isLoading && (
               <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
             )}

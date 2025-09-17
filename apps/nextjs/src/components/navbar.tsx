@@ -86,10 +86,10 @@ export function NavBar({
           <LocaleChange url={"/"} />
           {!user ? (
             <Link href={`/${lang}/login`}>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="text-purple-600 border-purple-600 hover:bg-purple-50">
                 {typeof marketing.login === "string"
                   ? marketing.login
-                  : "Default Login Text"}
+                  : "Login"}
               </Button>
             </Link>
           ) : null}
