@@ -24,8 +24,11 @@ export function BillingFormButton({
   const [isPending, startTransition] = useTransition();
 
   async function createSession(planId: string) {
-    const res = await trpc.stripe.createSession.mutate({ planId: planId });
-    if (res?.url) window.location.href = res?.url;
+    // Temporarily disabled for deployment
+    console.log("Stripe payment disabled for deployment");
+    return;
+    // const res = await trpc.stripe.createSession.mutate({ planId: planId });
+    // if (res?.url) window.location.href = res?.url;
   }
 
   const stripePlanId = year

@@ -5,6 +5,9 @@ import { handleEvent, stripe, type Stripe } from "@saasfly/stripe";
 import { env } from "~/env.mjs";
 
 const handler = async (req: NextRequest) => {
+  // Temporarily disabled for deployment
+  return NextResponse.json({ received: true, disabled: true }, { status: 200 });
+  /*
   const payload = await req.text();
   const signature = req.headers.get("Stripe-Signature")!;
   try {
@@ -22,6 +25,7 @@ const handler = async (req: NextRequest) => {
     console.log(`❌ Error when handling Stripe Event: ${message}`);
     return NextResponse.json({ error: message }, { status: 400 });
   }
+  */
 };
 
 export { handler as GET, handler as POST };

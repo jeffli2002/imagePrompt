@@ -35,9 +35,13 @@ export type UserSubscriptionPlan = SubscriptionPlan &
     isCanceled?: boolean;
   };
 export const stripeRouter = createTRPCRouter({
+  // Temporarily disabled for deployment
   createSession: protectedProcedure
     .input(z.object({ planId: z.string() }))
     .mutation(async (opts) => {
+      // Temporarily return a dummy response
+      return { success: false as const };
+      /*
       const userId = opts.ctx.userId! as string;
       const planId = opts.input.planId;
       const customer = await db
@@ -83,6 +87,7 @@ export const stripeRouter = createTRPCRouter({
 
       if (!session.url) return { success: false as const };
       return { success: true as const, url: session.url };
+      */
     }),
 
   // plans: protectedProcedure.query(async () => {
@@ -113,6 +118,18 @@ export const stripeRouter = createTRPCRouter({
   userPlans: protectedProcedure
     // .output(Promise<UserSubscriptionPlan>)
     .query(async (opts) => {
+      // Return default free plan
+      return {
+        ...pricingData[0],
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        stripePriceId: null,
+        stripeCurrentPeriodEnd: 0,
+        isPaid: false,
+        interval: null as "month" | "year" | null,
+        isCanceled: false,
+      };
+      /*
       noStore();
       const userId = opts.ctx.userId! as string;
       const custom = await db
@@ -168,5 +185,6 @@ export const stripeRouter = createTRPCRouter({
         interval,
         isCanceled,
       };
+      */
     }),
 });
