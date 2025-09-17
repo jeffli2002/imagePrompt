@@ -1,0 +1,14 @@
+#!/bin/sh
+
+echo "Running type check before push..."
+
+# Run turbo typecheck
+pnpm run typecheck
+
+if [ $? -ne 0 ]; then
+  echo "❌ Type check failed! Please fix TypeScript errors before pushing."
+  exit 1
+fi
+
+echo "✅ Type check passed!"
+exit 0
