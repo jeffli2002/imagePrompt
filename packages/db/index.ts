@@ -23,10 +23,20 @@ function getDb(): Kysely<DB> {
       _db = createKysely<DB>();
     } catch (error) {
       console.error("Database connection error:", error);
-      // Return a dummy database object for build time
+      // Return a more complete dummy database object for build time
       if (process.env.NODE_ENV === 'development' || !process.env.POSTGRES_URL) {
         console.warn("Running without database connection");
-        return {} as Kysely<DB>;
+        // Create a minimal mock that satisfies KyselyAdapter
+        return {
+          getExecutor: () => ({
+            executeQuery: async () => ({ rows: [] }),
+          }),
+          dynamic: {},
+          selectFrom: () => ({ where: () => ({ executeTakeFirst: async () => null }) }),
+          insertInto: () => ({ values: () => ({ execute: async () => {} }) }),
+          updateTable: () => ({ set: () => ({ where: () => ({ execute: async () => {} }) }) }),
+          deleteFrom: () => ({ where: () => ({ execute: async () => {} }) }),
+        } as unknown as Kysely<DB>;
       }
       throw error;
     }
@@ -46,13 +56,22 @@ export const db = new Proxy({} as Kysely<DB>, {
       return value;
     } catch (error) {
       console.error("Database proxy error:", error);
-      // Return a no-op function for build time
-      if (typeof prop === 'string' && ['selectFrom', 'insertInto', 'updateTable', 'deleteFrom'].includes(prop)) {
-        return () => ({
-          where: () => ({ executeTakeFirst: async () => null }),
-          select: () => ({ executeTakeFirst: async () => null }),
-          selectAll: () => ({ executeTakeFirst: async () => null }),
-        });
+      // Return appropriate mocks for build time
+      if (typeof prop === 'string') {
+        if (prop === 'getExecutor') {
+          return () => ({
+            executeQuery: async () => ({ rows: [] }),
+          });
+        }
+        if (['selectFrom', 'insertInto', 'updateTable', 'deleteFrom'].includes(prop)) {
+          return () => ({
+            where: () => ({ executeTakeFirst: async () => null }),
+            select: () => ({ executeTakeFirst: async () => null }),
+            selectAll: () => ({ executeTakeFirst: async () => null }),
+            values: () => ({ execute: async () => {} }),
+            set: () => ({ where: () => ({ execute: async () => {} }) }),
+          });
+        }
       }
       return undefined;
     }
