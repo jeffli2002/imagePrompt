@@ -1,5 +1,5 @@
-import { createKysely } from "@vercel/postgres-kysely";
-import { Kysely } from "kysely";
+import { Kysely, PostgresDialect } from "kysely";
+import { Pool } from "pg";
 import type { DB } from "./prisma/types";
 
 export { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
@@ -7,15 +7,28 @@ export { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 export * from "./prisma/types";
 export * from "./prisma/enums";
 
-// Create database instance with lazy initialization
-// The @vercel/postgres-kysely package will automatically use the correct
-// environment variables when deployed to Vercel
-// For local development, set POSTGRES_URL in your .env.local file
+// Create database instance
+// Use regular pg pool for both local and production
+// The connection string will determine if it's pooled or direct
 let _db: Kysely<DB> | null = null;
 
 function getDb(): Kysely<DB> {
   if (!_db) {
-    _db = createKysely<DB>();
+    // Use POSTGRES_URL which should be the pooled connection
+    const connectionString = process.env.POSTGRES_URL;
+    
+    if (!connectionString) {
+      throw new Error("POSTGRES_URL environment variable is not set");
+    }
+
+    _db = new Kysely<DB>({
+      dialect: new PostgresDialect({
+        pool: new Pool({
+          connectionString,
+          ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+        }),
+      }),
+    });
   }
   return _db;
 }
