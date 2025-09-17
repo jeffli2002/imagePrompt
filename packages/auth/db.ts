@@ -1,4 +1,6 @@
 import { createKysely } from "@vercel/postgres-kysely";
+import { Kysely, PostgresDialect } from "kysely";
+import { Pool } from "pg";
 import type { GeneratedAlways } from "kysely";
 
 interface Database {
@@ -36,4 +38,15 @@ interface Database {
   };
 }
 
-export const db = createKysely<Database>();
+// Create database instance
+// For local development, ensure you have the correct POSTGRES_URL set
+// For production, this will use Vercel's pooled connections automatically
+export const db = process.env.POSTGRES_PRISMA_URL
+  ? createKysely<Database>() // Vercel will use pooled connections
+  : new Kysely<Database>({
+      dialect: new PostgresDialect({
+        pool: new Pool({
+          connectionString: process.env.POSTGRES_URL || "postgresql://postgres:password@localhost:5432/saasfly"
+        })
+      })
+    });
