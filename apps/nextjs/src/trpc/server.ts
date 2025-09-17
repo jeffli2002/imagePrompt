@@ -11,17 +11,18 @@ import { callProcedure } from "@trpc/server";
 import { TRPCErrorResponse } from "@trpc/server/rpc";
 import { cache } from "react";
 import { appRouter } from "../../../../packages/api/src/root";
-import { auth } from "@clerk/nextjs/server";
-
-type AuthObject = Awaited<ReturnType<typeof auth>>;
+import { getServerSession } from "next-auth";
+import { authOptions } from "@saasfly/auth";
 
 export const createTRPCContext = async (opts: {
   headers: Headers;
-  auth: AuthObject;
 // eslint-disable-next-line @typescript-eslint/require-await
 }) => {
+  const session = await getServerSession(authOptions);
+  
   return {
-    userId: opts.auth.userId,
+    userId: session?.user?.id ?? null,
+    session,
     ...opts,
   };
 };
@@ -37,7 +38,6 @@ const createContext = cache(async () => {
       cookie: cookies().toString(),
       "x-trpc-source": "rsc",
     }),
-    auth: await auth(),
   });
 });
 
